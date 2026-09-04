@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>শিশু জরিপ ব্যবস্থাপনা সফটওয়্যার</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:"Noto Sans Bengali","SolaimanLipi",Arial,sans-serif;background:#f4f7fb;color:#1f2937}
+header{background:linear-gradient(135deg,#0f766e,#2563eb);color:white;padding:22px;text-align:center}
+header h1{margin:0 0 6px;font-size:28px}header p{margin:0;opacity:.9}
+.container{max-width:1400px;margin:20px auto;padding:0 15px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.card{background:white;border-radius:14px;padding:18px;box-shadow:0 3px 12px #00000010;border-left:5px solid #2563eb}
+.card b{display:block;font-size:28px;margin-top:5px}.card:nth-child(2){border-color:#0f766e}.card:nth-child(3){border-color:#f59e0b}.card:nth-child(4){border-color:#dc2626}
+.panel{background:white;border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 3px 12px #00000010}
+.panel h2{margin:0 0 16px;color:#1e40af;font-size:21px}
+.form{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.field{display:flex;flex-direction:column}.field label{font-weight:600;margin-bottom:5px;font-size:14px}
+input,select,button{font:inherit}input,select{padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff}
+input:focus,select:focus{outline:2px solid #93c5fd;border-color:#2563eb}
+.full{grid-column:1/-1}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+button{border:0;border-radius:8px;padding:10px 16px;cursor:pointer;font-weight:700}
+.primary{background:#2563eb;color:white}.success{background:#0f766e;color:white}.warning{background:#f59e0b;color:#111827}.danger{background:#dc2626;color:white}.secondary{background:#e2e8f0;color:#111827}
+.searchbar{display:flex;gap:10px;margin-bottom:14px}.searchbar input{flex:1}
+.filter-panel{background:#f8fafc;border:1px solid #dbeafe;border-radius:12px;padding:14px;margin-bottom:14px}
+.filter-title{font-weight:800;color:#1e3a8a;margin-bottom:10px}
+.filter-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.filter-grid .field{min-width:0}
+.filter-grid label{font-size:13px;font-weight:700;margin-bottom:4px}
+.filter-grid select,.filter-grid input{width:100%}
+.filter-summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+.result-count{background:#dbeafe;color:#1e3a8a;border-radius:999px;padding:7px 12px;font-weight:800}
+@media(max-width:1100px){.filter-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.filter-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:450px){.filter-grid{grid-template-columns:1fr}}
+@media print{.filter-panel{display:none!important}}
+
+.table-wrap{overflow:auto;border:1px solid #e2e8f0;border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:1250px}th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap;font-size:13px}th{background:#eff6ff;color:#1e3a8a;position:sticky;top:0}tr:hover td{background:#f8fafc}
+.badge{padding:4px 8px;border-radius:999px;font-size:12px;background:#e0f2fe}.yes{background:#fee2e2;color:#991b1b}.no{background:#dcfce7;color:#166534}
+.empty{text-align:center;padding:35px;color:#64748b}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.form{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.cards{grid-template-columns:1fr 1fr}.form{grid-template-columns:1fr}.panel{padding:14px}header h1{font-size:22px}}
+@media print{header,.cards,.form,.actions,.searchbar,.no-print{display:none!important}.panel{box-shadow:none}.table-wrap{overflow:visible;border:0}table{min-width:0;font-size:9px}th,td{white-space:normal}}
+</style>
+</head>
+<body>
+<header>
+<h1>শিশু জরিপ ব্যবস্থাপনা সফটওয়্যার</h1>
+<p>শিশুর তথ্য সংরক্ষণ, রিয়েল-টাইম সিঙ্ক, অনুসন্ধান, রিপোর্ট ও Excel/CSV Export</p>
+</header>
+
+<div class="container">
+<section class="cards">
+<div class="card">মোট শিশু<b id="total">0</b></div>
+<div class="card">ছেলে শিশু<b id="boys">0</b></div>
+<div class="card">মেয়ে শিশু<b id="girls">0</b></div>
+<div class="card">বিশেষ চাহিদা<b id="special">0</b></div>
+</section>
+
+<section class="panel">
+<h2 id="formTitle">➕ নতুন শিশুর তথ্য</h2>
+<form id="childForm">
+<input type="hidden" id="editId">
+<div class="field"><label>বাড়ির নাম *</label><input id="house" required></div>
+<div class="field"><label>খানা নম্বর</label><input id="houseNo" placeholder="না থাকলে খালি রাখুন"></div>
+<div class="field"><label>ক্রমিক নং (অটোমেটিক)</label><input id="serial" type="number" min="1" readonly style="background:#f1f5f9;font-weight:700"></div>
+<div class="field"><label>শিশুর নাম *</label><input id="childName" required></div>
+<div class="field"><label>পিতার নাম *</label><input id="father" required></div>
+<div class="field"><label>মাতার নাম *</label><input id="mother" required></div>
+<div class="field"><label>পূর্ণ বয়স</label><input id="age" type="number" min="0" max="30" placeholder="যেমন: 8"></div>
+<div class="field"><label>লিঙ্গ *</label><select id="gender" required><option value="">নির্বাচন করুন</option><option>ছেলে</option><option>মেয়ে</option><option>অন্যান্য</option></select></div>
+<div class="field"><label>কোন শ্রেণিতে পড়ে</label><select id="className"><option>প্রযোজ্য নয়</option><option>প্রাক-প্রাথমিক</option><option>১ম</option><option>২য়</option><option>৩য়</option><option>৪র্থ</option><option>৫ম</option><option>৬ষ্ঠ</option><option>৭ম</option><option>৮ম</option><option>৯ম</option><option>১০ম</option><option>অন্যান্য</option></select></div>
+<div class="field"><label>বিদ্যালয়ের ধরন</label><select id="schoolType"><option>প্রযোজ্য নয়</option><option>সরকারি প্রাথমিক</option><option>কিন্ডারগার্টেন</option><option>মাদ্রাসা</option><option>মাধ্যমিক বিদ্যালয়</option><option>অন্যান্য</option><option>বিদ্যালয়ে পড়ে না</option></select></div>
+<div class="field"><label>বিশেষ চাহিদা সম্পন্ন শিশু</label><select id="specialNeed"><option>না</option><option>হ্যাঁ</option></select></div>
+<div class="field"><label>লেখাপড়া ছেড়ে দেওয়ার কারণ</label><select id="dropReason"><option>প্রযোজ্য নয়</option><option>অর্থনৈতিক সমস্যা</option><option>অভিভাবকের অনাগ্রহ</option><option>শিশুর অনাগ্রহ</option><option>দূরত্ব/যাতায়াত সমস্যা</option><option>শ্রমে যুক্ত</option><option>বিয়ে</option><option>অসুস্থতা/প্রতিবন্ধকতা</option><option>অন্যান্য</option></select></div>
+<div class="field"><label>জন্ম তারিখ</label><input id="dob" type="date"></div>
+<div class="full actions">
+<button class="primary" type="submit">💾 তথ্য সংরক্ষণ</button>
+<button class="secondary" type="button" onclick="resetForm()">↺ ফর্ম পরিষ্কার</button>
+<button class="success" type="button" onclick="exportCSV()">⬇ CSV/Excel Export</button>
+<button class="warning" type="button" onclick="window.print()">🖨 Print</button>
+<button class="danger" type="button" onclick="deleteAll()">🗑 সব তথ্য মুছুন</button>
+</div>
+</form>
+</section>
+
+<section class="panel">
+<h2>🔎 শিশুদের তালিকা</h2>
+<div class="searchbar no-print">
+<input id="search" placeholder="Google-এর মতো খুঁজুন: নাম, পিতার নাম, মাতার নাম, বাড়ি, খানা নম্বর..." oninput="render()">
+</div>
+<div class="filter-panel no-print">
+<div class="filter-title">🎯 বিস্তারিত ফিল্টার — একাধিক শর্ত একসাথে ব্যবহার করুন</div>
+<div class="filter-grid">
+<div class="field"><label>পূর্ণ বয়স</label><select id="filterAge" onchange="render()"><option value="">সব বয়স</option></select></div>
+<div class="field"><label>লিঙ্গ</label><select id="filterGender" onchange="render()"><option value="">সব লিঙ্গ</option><option>ছেলে</option><option>মেয়ে</option><option>অন্যান্য</option></select></div>
+<div class="field"><label>কোন শ্রেণিতে পড়ে</label><select id="filterClass" onchange="render()"><option value="">সব শ্রেণি</option></select></div>
+<div class="field"><label>বিদ্যালয়ের ধরন</label><select id="filterSchool" onchange="render()"><option value="">সব বিদ্যালয়</option></select></div>
+<div class="field"><label>বিশেষ চাহিদা</label><select id="filterSpecial" onchange="render()"><option value="">সব</option><option>হ্যাঁ</option><option>না</option></select></div>
+</div>
+<div class="filter-summary">
+<span class="result-count">ফিল্টারে পাওয়া শিশু: <b id="filteredCount">0</b> জন</span>
+<button class="secondary" type="button" onclick="clearFilters()">✖ ফিল্টার পরিষ্কার</button>
+</div>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>ক্রমিক</th><th>বাড়ির নাম</th><th>খানা নং</th><th>শিশুর নাম</th><th>পিতার নাম</th><th>মাতার নাম</th><th>পূর্ণ বয়স</th><th>লিঙ্গ</th><th>শ্রেণি</th><th>বিদ্যালয়ের ধরন</th><th>বিশেষ চাহিদা</th><th>ছাড়ার কারণ</th><th>জন্ম তারিখ</th><th class="no-print">কার্যক্রম</th></tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+</section>
+</div>
+
+<!-- Firebase Modular SDK Import -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // TODO: আপনার Firebase Console থেকে পাওয়া সঠিক Credentials টি এখানে বসান
+  const firebaseConfig = {
+    apiKey: "AIzaSyDqhtIAa5IAy7asEbLdiTw7rXjPsBBpIfl",
+    authDomain: "student-survey-f2e63.firebaseapp.com",
+    databaseURL: "https://student-survey-f2e63-default-rtdb.firebaseio.com",
+    projectId: "student-survey-f2e63",
+    storageBucket: "student-survey-f2e63.firebasestorage.app",
+    messagingSenderId: "170983895730",
+    appId: "1:170983895730:web:e571f7d3fec764b767cfab",
+    measurementId: "G-MJD433DVPN"
+  };
+    apiKey: "YOUR_API_KEY",
+    authDomain: "student-survey-f2e63.firebaseapp.com",
+    databaseURL: "https://student-survey-f2e63-default-rtdb.firebaseio.com",
+    projectId: "student-survey-f2e63",
+    storageBucket: "student-survey-f2e63.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const childrenRef = ref(db, 'children');
+
+  let childrenData = [];
+
+  // ১. রিয়েল-টাইম ডাটা সিঙ্ক (Firebase Listen)
+  onValue(childrenRef, (snapshot) => {
+    const data = snapshot.val();
+    childrenData = [];
+    if (data) {
+      Object.keys(data).forEach(key => {
+        childrenData.push({ dbKey: key, ...data[key] });
+      });
+    }
+    updateSerialAuto();
+    populateFilterDropdowns();
+    render();
+  });
+
+  // অটো-সিরিয়াল আপডেট করা
+  function updateSerialAuto() {
+    if (!document.getElementById('editId').value) {
+      const maxSerial = childrenData.reduce((max, item) => {
+        const s = parseInt(item.serial) || 0;
+        return s > max ? s : max;
+      }, 0);
+      document.getElementById('serial').value = maxSerial + 1;
+    }
+  }
+
+  // ফর্ম জমা নেওয়া (Add / Update)
+  document.getElementById('childForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const editId = document.getElementById('editId').value;
+
+    const payload = {
+      house: document.getElementById('house').value.trim(),
+      houseNo: document.getElementById('houseNo').value.trim(),
+      serial: document.getElementById('serial').value,
+      childName: document.getElementById('childName').value.trim(),
+      father: document.getElementById('father').value.trim(),
+      mother: document.getElementById('mother').value.trim(),
+      age: document.getElementById('age').value,
+      gender: document.getElementById('gender').value,
+      className: document.getElementById('className').value,
+      schoolType: document.getElementById('schoolType').value,
+      specialNeed: document.getElementById('specialNeed').value,
+      dropReason: document.getElementById('dropReason').value,
+      dob: document.getElementById('dob').value
+    };
+
+    if (editId) {
+      // সম্পাদনা / Update
+      update(ref(db, 'children/' + editId), payload).then(() => {
+        resetForm();
+      });
+    } else {
+      // নতুন যোগ / Create
+      push(childrenRef, payload).then(() => {
+        resetForm();
+      });
+    }
+  });
+
+  // রেন্ডার ও টেবিল ফিল্টারিং
+  window.render = function() {
+    const searchVal = document.getElementById('search').value.toLowerCase();
+    const fAge = document.getElementById('filterAge').value;
+    const fGender = document.getElementById('filterGender').value;
+    const fClass = document.getElementById('filterClass').value;
+    const fSchool = document.getElementById('filterSchool').value;
+    const fSpecial = document.getElementById('filterSpecial').value;
+
+    let filtered = childrenData.filter(item => {
+      const matchSearch = !searchVal || 
+        (item.childName && item.childName.toLowerCase().includes(searchVal)) ||
+        (item.father && item.father.toLowerCase().includes(searchVal)) ||
+        (item.mother && item.mother.toLowerCase().includes(searchVal)) ||
+        (item.house && item.house.toLowerCase().includes(searchVal)) ||
+        (item.houseNo && item.houseNo.toLowerCase().includes(searchVal));
+
+      const matchAge = !fAge || item.age === fAge;
+      const matchGender = !fGender || item.gender === fGender;
+      const matchClass = !fClass || item.className === fClass;
+      const matchSchool = !fSchool || item.schoolType === fSchool;
+      const matchSpecial = !fSpecial || item.specialNeed === fSpecial;
+
+      return matchSearch && matchAge && matchGender && matchClass && matchSchool && matchSpecial;
+    });
+
+    // কার্ডের পরিসংখ্যান আপডেট
+    document.getElementById('total').innerText = childrenData.length;
+    document.getElementById('boys').innerText = childrenData.filter(c => c.gender === 'ছেলে').length;
+    document.getElementById('girls').innerText = childrenData.filter(c => c.gender === 'মেয়ে').length;
+    document.getElementById('special').innerText = childrenData.filter(c => c.specialNeed === 'হ্যাঁ').length;
+    document.getElementById('filteredCount').innerText = filtered.length;
+
+    // টেবিল তৈরি
+    const tbody = document.getElementById('tbody');
+    tbody.innerHTML = '';
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="14" class="empty">কোনো শিশুর তথ্য পাওয়া যায়নি</td></tr>';
+      return;
+    }
+
+    filtered.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.serial || ''}</td>
+        <td>${item.house || ''}</td>
+        <td>${item.houseNo || ''}</td>
+        <td><b>${item.childName || ''}</b></td>
+        <td>${item.father || ''}</td>
+        <td>${item.mother || ''}</td>
+        <td>${item.age || ''}</td>
+        <td>${item.gender || ''}</td>
+        <td>${item.className || ''}</td>
+        <td>${item.schoolType || ''}</td>
+        <td><span class="badge ${item.specialNeed === 'হ্যাঁ' ? 'yes' : 'no'}">${item.specialNeed || 'না'}</span></td>
+        <td>${item.dropReason || ''}</td>
+        <td>${item.dob || ''}</td>
+        <td class="no-print">
+          <button class="warning" style="padding:4px 8px;font-size:12px" onclick="editChild('${item.dbKey}')">✏️</button>
+          <button class="danger" style="padding:4px 8px;font-size:12px" onclick="deleteChild('${item.dbKey}')">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // এডিটের তথ্য ফর্মে বসানো
+  window.editChild = function(key) {
+    const child = childrenData.find(c => c.dbKey === key);
+    if (!child) return;
+
+    document.getElementById('editId').value = key;
+    document.getElementById('house').value = child.house || '';
+    document.getElementById('houseNo').value = child.houseNo || '';
+    document.getElementById('serial').value = child.serial || '';
+    document.getElementById('childName').value = child.childName || '';
+    document.getElementById('father').value = child.father || '';
+    document.getElementById('mother').value = child.mother || '';
+    document.getElementById('age').value = child.age || '';
+    document.getElementById('gender').value = child.gender || '';
+    document.getElementById('className').value = child.className || '';
+    document.getElementById('schoolType').value = child.schoolType || '';
+    document.getElementById('specialNeed').value = child.specialNeed || '';
+    document.getElementById('dropReason').value = child.dropReason || '';
+    document.getElementById('dob').value = child.dob || '';
+
+    document.getElementById('formTitle').innerText = '✏️ তথ্য সম্পাদনা করুন';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // একটি রেকর্ড ডিলিট করা
+  window.deleteChild = function(key) {
+    if (confirm('আপনি কি নিশ্চিত যে এই তথ্যটি মুছে ফেলতে চান?')) {
+      remove(ref(db, 'children/' + key));
+    }
+  }
+
+  // সব তথ্য ডিলিট
+  window.deleteAll = function() {
+    if (confirm('⚠️ সতর্কবার্তা: আপনি কি সব তথ্য চিরতরে মুছে ফেলতে চান?')) {
+      remove(childrenRef);
+    }
+  }
+
+  // ফর্ম রিসেট
+  window.resetForm = function() {
+    document.getElementById('childForm').reset();
+    document.getElementById('editId').value = '';
+    document.getElementById('formTitle').innerText = '➕ নতুন শিশুর তথ্য';
+    updateSerialAuto();
+  }
+
+  // ডাইনামিক ফিল্টার ড্রপডাউন পপুলেট
+  function populateFilterDropdowns() {
+    const ages = [...new Set(childrenData.map(c => c.age).filter(Boolean))].sort((a,b) => a - b);
+    const classes = [...new Set(childrenData.map(c => c.className).filter(Boolean))];
+    const schools = [...new Set(childrenData.map(c => c.schoolType).filter(Boolean))];
+
+    populateSelect('filterAge', ages, 'সব বয়স');
+    populateSelect('filterClass', classes, 'সব শ্রেণি');
+    populateSelect('filterSchool', schools, 'সব বিদ্যালয়');
+  }
+
+  function populateSelect(id, items, defaultText) {
+    const sel = document.getElementById(id);
+    const curr = sel.value;
+    sel.innerHTML = `<option value="">${defaultText}</option>`;
+    items.forEach(i => {
+      sel.innerHTML += `<option value="${i}">${i}</option>`;
+    });
+    sel.value = curr;
+  }
+
+  window.clearFilters = function() {
+    document.getElementById('search').value = '';
+    document.getElementById('filterAge').value = '';
+    document.getElementById('filterGender').value = '';
+    document.getElementById('filterClass').value = '';
+    document.getElementById('filterSchool').value = '';
+    document.getElementById('filterSpecial').value = '';
+    render();
+  }
+
+  // CSV Export
+  window.exportCSV = function() {
+    let csv = "\uFEFFক্রমিক,বাড়ির নাম,খানা নং,শিশুর নাম,পিতার নাম,মাতার নাম,পূর্ণ বয়স,লিঙ্গ,শ্রেণি,বিদ্যালয়ের ধরন,বিশেষ চাহিদা,ছাড়ার কারণ,জন্ম তারিখ\n";
+    childrenData.forEach(c => {
+      csv += `"${c.serial || ''}","${c.house || ''}","${c.houseNo || ''}","${c.childName || ''}","${c.father || ''}","${c.mother || ''}","${c.age || ''}","${c.gender || ''}","${c.className || ''}","${c.schoolType || ''}","${c.specialNeed || ''}","${c.dropReason || ''}","${c.dob || ''}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Child_Survey_Report_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+  }
+</script>
+</body>
+</html>
+১. Firebase প্রজেক্ট সেটআপ (রিয়েল-টাইম ডাটাবেসের জন্য)
+Firebase Console-এ গিয়ে একটি জিমেইল অ্যাকাউন্ট দিয়ে লগইন করুন।
+
+Add project এ ক্লিক করে একটি প্রজেক্ট তৈরি করুন।
+
+প্রজেক্টের ড্যাশবোর্ডে গিয়ে Build > Realtime Database এ যান এবং Create Database নির্বাচন করুন।
+
+Database Rules অপশনে গিয়ে টেস্ট মোডে চালু করুন অথবা রুলস বদলে দিয়ে নিচে দেওয়া রুল বসান যাতে সবাই ডাটা দেখতে ও লিখতে পারে:
+
+JSON
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+প্রজেক্ট ড্যাশবোর্ড থেকে Project Settings (গিয়ার আইকন)-এ যান।
+
+Web App (</>) আইকনে ক্লিক করে আপনার অ্যাপটি রেজিস্টার করুন।
+
+রেজিস্টার করার পর একটি firebaseConfig অবজেক্ট পাবেন।
+
+উক্ত কোডের const firebaseConfig = { ... }; অংশে আপনার অ্যাপের আসল Credentials বসিয়ে দিন।
+
+২. GitHub Pages এ ফ্রীতে লাইভ করার উপায়
+GitHub-এ একটি বিনামূল্যে অ্যাকাউন্ট খুলুন।
+
+নতুন একটি Public repository তৈরি করুন (যেমন: child-survey).
+
+আপনার তৈরি করা ফাইলটির নাম নাম দিন index.html এবং রেপোজিটরিতে Upload files এর মাধ্যমে পুশ করুন।
+
+repository-এর Settings এ ক্লিক করুন।
+
+বাম পাশের মেনু থেকে Pages নির্বাচন করুন।
+
+Build and deployment সেকশনে Branch থেকে main বা master সিলেক্ট করে Save বাটনে প্রেস করুন।
+
+২-৩ মিনিট পর আপনি একটি লাইভ URL পেয়ে যাবেন (যেমন: [https://yourusername.github.io/child-survey/](https://yourusername.github.io/child-survey/))।
