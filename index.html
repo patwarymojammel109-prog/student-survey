@@ -118,7 +118,6 @@ table{width:100%;border-collapse:collapse;min-width:1250px}th,td{padding:9px;bor
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  // TODO: আপনার Firebase Console থেকে পাওয়া সঠিক Credentials টি এখানে বসান
   const firebaseConfig = {
     apiKey: "AIzaSyDqhtIAa5IAy7asEbLdiTw7rXjPsBBpIfl",
     authDomain: "student-survey-f2e63.firebaseapp.com",
@@ -128,14 +127,6 @@ table{width:100%;border-collapse:collapse;min-width:1250px}th,td{padding:9px;bor
     messagingSenderId: "170983895730",
     appId: "1:170983895730:web:e571f7d3fec764b767cfab",
     measurementId: "G-MJD433DVPN"
-  };
-    apiKey: "YOUR_API_KEY",
-    authDomain: "student-survey-f2e63.firebaseapp.com",
-    databaseURL: "https://student-survey-f2e63-default-rtdb.firebaseio.com",
-    projectId: "student-survey-f2e63",
-    storageBucket: "student-survey-f2e63.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -363,41 +354,3 @@ table{width:100%;border-collapse:collapse;min-width:1250px}th,td{padding:9px;bor
 </script>
 </body>
 </html>
-১. Firebase প্রজেক্ট সেটআপ (রিয়েল-টাইম ডাটাবেসের জন্য)
-Firebase Console-এ গিয়ে একটি জিমেইল অ্যাকাউন্ট দিয়ে লগইন করুন।
-
-Add project এ ক্লিক করে একটি প্রজেক্ট তৈরি করুন।
-
-প্রজেক্টের ড্যাশবোর্ডে গিয়ে Build > Realtime Database এ যান এবং Create Database নির্বাচন করুন।
-
-Database Rules অপশনে গিয়ে টেস্ট মোডে চালু করুন অথবা রুলস বদলে দিয়ে নিচে দেওয়া রুল বসান যাতে সবাই ডাটা দেখতে ও লিখতে পারে:
-
-JSON
-{
-  "rules": {
-    ".read": true,
-    ".write": true
-  }
-}
-প্রজেক্ট ড্যাশবোর্ড থেকে Project Settings (গিয়ার আইকন)-এ যান।
-
-Web App (</>) আইকনে ক্লিক করে আপনার অ্যাপটি রেজিস্টার করুন।
-
-রেজিস্টার করার পর একটি firebaseConfig অবজেক্ট পাবেন।
-
-উক্ত কোডের const firebaseConfig = { ... }; অংশে আপনার অ্যাপের আসল Credentials বসিয়ে দিন।
-
-২. GitHub Pages এ ফ্রীতে লাইভ করার উপায়
-GitHub-এ একটি বিনামূল্যে অ্যাকাউন্ট খুলুন।
-
-নতুন একটি Public repository তৈরি করুন (যেমন: child-survey).
-
-আপনার তৈরি করা ফাইলটির নাম নাম দিন index.html এবং রেপোজিটরিতে Upload files এর মাধ্যমে পুশ করুন।
-
-repository-এর Settings এ ক্লিক করুন।
-
-বাম পাশের মেনু থেকে Pages নির্বাচন করুন।
-
-Build and deployment সেকশনে Branch থেকে main বা master সিলেক্ট করে Save বাটনে প্রেস করুন।
-
-২-৩ মিনিট পর আপনি একটি লাইভ URL পেয়ে যাবেন (যেমন: [https://yourusername.github.io/child-survey/](https://yourusername.github.io/child-survey/))।
