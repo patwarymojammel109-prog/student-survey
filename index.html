@@ -138,7 +138,7 @@ onValue(childrenRef, (snapshot) => {
   render();
 });
 
-// Populate Filter Options Dynamically
+// Dynamic Filter Population
 function populateFilterOptions() {
   const ages = [...new Set(allChildren.map(c => c.age).filter(Boolean))].sort((a,b)=>a-b);
   const classes = [...new Set(allChildren.map(c => c.className).filter(Boolean))];
@@ -159,15 +159,43 @@ function fillSelect(elementId, items, defaultText) {
   select.value = currentVal;
 }
 
-// Render Table and Filters
+// Render Table, Sorting and Filtering
 window.render = function() {
-  const search = document.getElementById("search").value.toLowerCase();
+  const search = document.getElementById("search").value.toLowerCase().trim();
   const filterAge = document.getElementById("filterAge").value;
   const filterGender = document.getElementById("filterGender").value;
   const filterClass = document.getElementById("filterClass").value;
   const filterSchool = document.getElementById("filterSchool").value;
   const filterSpecial = document.getElementById("filterSpecial").value;
 
+  // ১. সর্টিং (খানা নম্বর, বাড়ির নাম এবং গ্রুপের ক্রম অনুযায়ী সাজানো)
+  allChildren.sort((a, b) => {
+    const houseA = (a.house || "").trim().toLowerCase();
+    const houseB = (b.house || "").trim().toLowerCase();
+    const houseNoA = (a.houseNo || "").trim();
+    const houseNoB = (b.houseNo || "").trim();
+
+    // বাড়ির নাম অনুযায়ী গ্রুপিং
+    if (houseA !== houseB) {
+      return houseA.localeCompare(houseB, 'bn');
+    }
+
+    // বাড়ি একই হলে খানা নম্বর অনুযায়ী সাজানো (সংখ্যা হিসেবে)
+    const numA = parseInt(houseNoA, 10);
+    const numB = parseInt(houseNoB, 10);
+
+    if (!isNaN(numA) && !isNaN(numB)) {
+      return numA - numB;
+    } else if (houseNoA && !houseNoB) {
+      return -1; // খানা নম্বর আগে থাকবে
+    } else if (!houseNoA && houseNoB) {
+      return 1;
+    } else {
+      return houseNoA.localeCompare(houseNoB, 'bn');
+    }
+  });
+
+  // ২. ফিল্টারিং
   const filtered = allChildren.filter(item => {
     const matchesSearch = !search || 
       (item.childName && item.childName.toLowerCase().includes(search)) ||
@@ -185,20 +213,22 @@ window.render = function() {
     return matchesSearch && matchesAge && matchesGender && matchesClass && matchesSchool && matchesSpecial;
   });
 
-  // Update Stats
+  // আপডেট স্ট্যাটস
   document.getElementById("total").innerText = allChildren.length;
   document.getElementById("boys").innerText = allChildren.filter(c => c.gender === "ছেলে").length;
   document.getElementById("girls").innerText = allChildren.filter(c => c.gender === "মেয়ে").length;
   document.getElementById("special").innerText = allChildren.filter(c => c.specialNeed === "হ্যাঁ").length;
   document.getElementById("filteredCount").innerText = filtered.length;
 
-  // Render Table Rows
+  // টেবিল রেন্ডারিং ও অটোমেটিক ক্রমিক নম্বর প্রদান
   const tbody = document.getElementById("tbody");
   tbody.innerHTML = "";
-  filtered.forEach(item => {
+  
+  filtered.forEach((item, index) => {
+    const displaySerial = index + 1; // সাজানোর পর ১ থেকে সিরিয়াল
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${item.serial || ''}</td>
+      <td><b>${displaySerial}</b></td>
       <td>${item.house || ''}</td>
       <td>${item.houseNo || ''}</td>
       <td><b>${item.childName || ''}</b></td>
@@ -219,10 +249,9 @@ window.render = function() {
     tbody.appendChild(tr);
   });
 
-  // Auto Serial Generator for New Entry
+  // ফর্মের জন্য অটোমেটিক পরবর্তী ক্রমিক সেট
   if (!document.getElementById("editId").value) {
-    const maxSerial = allChildren.reduce((max, c) => Math.max(max, parseInt(c.serial) || 0), 0);
-    document.getElementById("serial").value = maxSerial + 1;
+    document.getElementById("serial").value = allChildren.length + 1;
   }
 };
 
@@ -232,7 +261,7 @@ window.render = function() {
   document.getElementById(id).addEventListener("change", render);
 });
 
-// Form Handlers
+// Form Submissions
 document.getElementById("childForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const editId = document.getElementById("editId").value;
@@ -301,11 +330,11 @@ document.getElementById("btnDeleteAll").addEventListener("click", () => {
   }
 });
 
-// CSV Export
+// Export CSV
 document.getElementById("btnExport").addEventListener("click", () => {
   let csv = "ক্রমিক,বাড়ির নাম,খানা নং,শিশুর নাম,পিতার নাম,মাতার নাম,পূর্ণ বয়স,লিঙ্গ,শ্রেণি,বিদ্যালয়ের ধরন,বিশেষ চাহিদা,ছাড়ার কারণ,জন্ম তারিখ\n";
-  allChildren.forEach(c => {
-    csv += `"${c.serial||''}","${c.house||''}","${c.houseNo||''}","${c.childName||''}","${c.father||''}","${c.mother||''}","${c.age||''}","${c.gender||''}","${c.className||''}","${c.schoolType||''}","${c.specialNeed||''}","${c.dropReason||''}","${c.dob||''}"\n`;
+  allChildren.forEach((c, idx) => {
+    csv += `"${idx + 1}","${c.house||''}","${c.houseNo||''}","${c.childName||''}","${c.father||''}","${c.mother||''}","${c.age||''}","${c.gender||''}","${c.className||''}","${c.schoolType||''}","${c.specialNeed||''}","${c.dropReason||''}","${c.dob||''}"\n`;
   });
   const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement("a");
