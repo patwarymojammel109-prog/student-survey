@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>শিশু জরিপ - মাল্টি ডিভাইস সিঙ্ক</title>
+<link rel="icon" href="data:,">
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:"Noto Sans Bengali","SolaimanLipi",Arial,sans-serif;background:#f4f7fb;color:#1f2937}
 header{background:linear-gradient(135deg,#0f766e,#2563eb);color:#fff;padding:22px;text-align:center}
@@ -143,8 +144,17 @@ function render(){
  $("serial").value=data.length+1;
 }
 function resetForm(){$("childForm").reset();$("editId").value="";$("formTitle").textContent="➕ নতুন শিশুর তথ্য";$("specialNeed").value="না";$("dropReason").value="প্রযোজ্য নয়";$("className").value="প্রযোজ্য নয়";$("schoolType").value="প্রযোজ্য নয়";$("serial").value=data.length+1;}
-window.resetForm=resetForm;\nfunction clearFilters(){["filterAge","filterGender","filterClass","filterSchool","filterSpecial"].forEach(id=>$(id).value="");$("search").value="";render();}\nwindow.clearFilters=clearFilters;
+window.resetForm = resetForm;
 
+function clearFilters() {
+  ["filterAge", "filterGender", "filterClass", "filterSchool", "filterSpecial"].forEach(id => {
+    if ($(id)) $(id).value = "";
+  });
+  if ($("search")) $("search").value = "";
+  render();
+}
+
+window.clearFilters = clearFilters;
 $("childForm").addEventListener("submit",async e=>{
  e.preventDefault();
  try{
